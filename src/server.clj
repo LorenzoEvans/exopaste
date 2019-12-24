@@ -22,5 +22,14 @@
     (map->HttpServer {}))
 
 (defn paste-handler [store request]
-    (let [paste (store/get-paste-by-uuid store (:uuid (:route-params request)))]))
+    (let [paste (store/get-paste-by-uuid store (:uuid (:route-params request)))]
+        (res/response (view/render-paste paste))))
         
+(defn handler [store]
+; this will return the result of the index-handler and paste-handler functions to our
+; http client, when launched via the system map.
+; we use partial because ring will only allow handlers a single parameter, which is the request
+; the application of partial binds the store to the handler, returning a (? the same) function that
+; takes a single argument.
+    (make-handler ["/" {"" (partial index-handler store)
+                        [:uuid] (partial paste-handler store)}])) ; partial allows for request & store.
